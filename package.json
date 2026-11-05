@@ -1,0 +1,9 @@
+{
+  "name": "app-elingo",
+  "private": true,
+  "type": "module",
+  "description": "Elingo – trénink na zkoušku revizního technika E2A",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  }
+}

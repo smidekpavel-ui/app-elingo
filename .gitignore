@@ -1,0 +1,7 @@
+# Sada otázek není veřejná – nikdy do repozitáře ani na web.
+karty.json
+**/karty.json
+karty*.json
+!karty.ukazka.json
+node_modules/
+.DS_Store

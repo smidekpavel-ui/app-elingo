@@ -1,0 +1,124 @@
+{
+  "nastaveni": {
+    "datum_zkousky": null,
+    "novych_denne": 2,
+    "pauzy_dny": [
+      1,
+      3,
+      7,
+      14,
+      30,
+      60
+    ],
+    "poznamka": "UKÁZKA – vymyšlené karty jen pro vývoj a testy aplikace Elingo. Nejsou to zkušební otázky."
+  },
+  "serie": {
+    "dni_v_rade": 0,
+    "posledni_sezeni": null
+  },
+  "karty": [
+    {
+      "id": "ukazka-test-001",
+      "typ": "test",
+      "tema": "sítě a vodiče",
+      "otazka": "UKÁZKA: Kolik nohou má obvyklá židle?",
+      "moznosti": {
+        "a": "čtyři",
+        "b": "tři",
+        "c": "šest"
+      },
+      "odpoved": "čtyři",
+      "spravna": "a",
+      "klicove_body": [],
+      "zdroj": "Ukázková karta (vymyšlená)",
+      "stav": "nova",
+      "prihradka": 0,
+      "pristi": null,
+      "historie": []
+    },
+    {
+      "id": "ukazka-test-002",
+      "typ": "test",
+      "tema": "RCD a jištění",
+      "otazka": "UKÁZKA: Jakou barvu má v ukázce „bezpečné“ tlačítko?",
+      "moznosti": {
+        "a": "zelenou",
+        "b": "fialovou",
+        "c": "průhlednou"
+      },
+      "odpoved": "zelenou",
+      "spravna": "a",
+      "klicove_body": [],
+      "zdroj": "Ukázková karta (vymyšlená)",
+      "stav": "v_opakovani",
+      "prihradka": 1,
+      "pristi": "2026-11-01",
+      "historie": [
+        {
+          "datum": "2026-10-25",
+          "vysledek": "spravne",
+          "jistota": 3,
+          "poznamka": ""
+        }
+      ],
+      "poznamka_overeni": "UKÁZKA: Sada chce „zelenou“, ukázkový „předpis“ říká „modrou“. Ověřit."
+    },
+    {
+      "id": "ukazka-priklad-1",
+      "typ": "priklad",
+      "tema": "ochrana před úrazem",
+      "otazka": "UKÁZKA: Vypočtěte 1,5 × 4.",
+      "odpoved": "1,5 × 4 = 6",
+      "klicove_body": [],
+      "zdroj": "Ukázková karta (vymyšlená)",
+      "stav": "v_opakovani",
+      "prihradka": 2,
+      "pristi": "2026-11-20",
+      "historie": [
+        {
+          "datum": "2026-10-20",
+          "vysledek": "castecne",
+          "jistota": 2,
+          "poznamka": ""
+        },
+        {
+          "datum": "2026-11-04",
+          "vysledek": "odlozeno",
+          "jistota": null,
+          "poznamka": "odloženo o měsíc"
+        }
+      ]
+    },
+    {
+      "id": "ukazka-ustni-1",
+      "typ": "ustni",
+      "tema": "barvy vodičů",
+      "otazka": "UKÁZKA: Vysvětlete, jak se dělá čaj.",
+      "odpoved": "ohřát vodu; zalít; nechat louhovat",
+      "klicove_body": [
+        "ohřát vodu",
+        "zalít",
+        "nechat louhovat"
+      ],
+      "zdroj": "Ukázková karta (vymyšlená)",
+      "stav": "v_opakovani",
+      "prihradka": 0,
+      "pristi": "2026-11-03",
+      "historie": []
+    },
+    {
+      "id": "ukazka-ustni-2",
+      "typ": "ustni",
+      "tema": "vnější vlivy",
+      "otazka": "UKÁZKA: Vysvětlete, proč prší.",
+      "odpoved": "",
+      "klicove_body": [],
+      "zdroj": "Ukázková karta (vymyšlená)",
+      "stav": "doplnit_klicove_body",
+      "prihradka": 0,
+      "pristi": null,
+      "historie": [],
+      "terminologie": "UKÁZKA pole, kterému aplikace nerozumí – musí přežít export."
+    }
+  ]
+}

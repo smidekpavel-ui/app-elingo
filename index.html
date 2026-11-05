@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#cc5200">
+  <title>Elingo</title>
+  <meta name="description" content="Příprava na zkoušku revizního technika E2A">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/ikona-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Elingo">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div id="uvod" class="uvod" aria-hidden="true">
+    <div class="uvod-stred">
+      <svg class="uvod-blesk" viewBox="0 0 512 512" aria-hidden="true"><path d="M290 64 150 284h96l-30 164 146-232h-98z"/></svg>
+      <div class="uvod-nazev">Elingo</div>
+      <div class="uvod-podtitul">trénink na zkoušku</div>
+    </div>
+    <div class="uvod-powered">
+      <span>powered by</span>
+      <img id="uvod-logo" src="icons/powered-by.svg" alt="" hidden>
+      <strong id="uvod-text">elektrodoktor.cz</strong>
+    </div>
+  </div>
+  <header class="lista">
+    <h1 class="logo">Elingo</h1>
+    <div class="lista-info" id="lista-info"></div>
+  </header>
+
+  <main id="obsah" aria-live="polite">
+    <p class="nacitani">Načítám…</p>
+  </main>
+
+  <nav class="spodni" aria-label="Hlavní menu">
+    <button type="button" data-obrazovka="mapa" class="aktivni">Jednotky</button>
+    <button type="button" data-obrazovka="data">Karty a záloha</button>
+  </nav>
+
+  <input type="file" id="soubor" accept="application/json,.json" hidden>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
