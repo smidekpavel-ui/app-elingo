@@ -54,7 +54,7 @@ export function spocitatXP(spravnych) {
  */
 export function spustitLekci(ctx) {
   const den = dnes();
-  const karty = vybratLekci(ctx.data.karty, { jednotka: ctx.jednotka, dnes: den, videno: ctx.aplikace.videno || {} });
+  const karty = vybratLekci(ctx.data.karty, { jednotka: ctx.jednotka || undefined, dnes: den, videno: ctx.aplikace.videno || {}, ...(ctx.jednotka ? {} : { velikost: 8 }) });
   const pauzy = ctx.data.nastaveni?.pauzy_dny || VYCHOZI_PAUZY;
   const lekce = { karty, index: 0, vysledky: [] };
 

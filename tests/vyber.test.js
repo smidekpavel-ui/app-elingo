@@ -62,3 +62,14 @@ test('„umím z výběru“ → psaná odpověď', () => {
   assert.ok(umimZVyberu({ typ: 'test', prihradka: 2, historie: [{ datum: '2026-11-01', vysledek: 'spravne', jistota: 3 }] }));
   assert.ok(!umimZVyberu({ typ: 'test', prihradka: 1, historie: [{ datum: '2026-11-01', vysledek: 'spravne', jistota: 3 }] }));
 });
+
+test('smíchaná lekce bere z každé jednotky, nejvýš 8 karet', () => {
+  const temata = ['sítě a vodiče', 'RCD a jištění', 'ochrana před úrazem', 'kvalifikace a práce'];
+  const karty = [];
+  temata.forEach((t, i) => { for (let n = 0; n < 5; n++) karty.push({ id: `m${i}-${n}`, typ: 'test', tema: t, otazka: 'x', stav: 'nova', prihradka: 0, pristi: null, historie: [] }); });
+  const lekce = vybratLekci(karty, { dnes: '2026-11-05', velikost: 8 });
+  assert.equal(lekce.length, 8);
+  const jednotky = new Set(lekce.map((k) => jednotkaKarty(k)));
+  assert.equal(jednotky.size, 4);
+  assert.equal(new Set(lekce.map((k) => k.id)).size, 8);
+});

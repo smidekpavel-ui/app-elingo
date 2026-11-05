@@ -137,7 +137,10 @@ p { margin: 0 0 12px; }
   box-shadow: var(--stin);
   padding: 14px 16px; min-height: 72px;
   color: inherit; font: inherit; text-align: left; width: 100%;
+  cursor: pointer; transition: border-color .15s, transform .05s;
 }
+.jednotka:hover { border-color: var(--hlavni); }
+.jednotka:active { transform: scale(.99); }
 .jednotka .nazev { font-weight: 650; }
 .jednotka .pocet { color: var(--tlumeny); font-size: 14px; }
 .jednotka .cisla { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; font-size: 14px; }

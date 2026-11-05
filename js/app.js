@@ -66,17 +66,16 @@ function obrazovkaMapa() {
   if (!stav.data) return obrazovkaPrazdna();
   const den = dnes();
   const sKartami = JEDNOTKY.filter((j) => stav.data.karty.some((k) => jednotkaKarty(k) === j.id));
-  const { otevrene, splnene } = odemceneJednotky(stav.aplikace.vysledky_lekci, sKartami.map((j) => j.id));
-  const bloky = sKartami.map((j, i) => {
+  const { splnene } = odemceneJednotky(stav.aplikace.vysledky_lekci, sKartami.map((j) => j.id));
+  const bloky = sKartami.map((j) => {
     const karty = stav.data.karty.filter((k) => jednotkaKarty(k) === j.id);
-    const zamceno = !otevrene.has(j.id);
     const c = { umim: 0, ucim: 0, nova: 0 };
     karty.forEach((k) => c[stavUceni(k)]++);
     const odlozenych = karty.filter((k) => jeOdlozena(k, den)).length;
     const proc = (n) => `${(n / karty.length) * 100}%`;
     const naRade = dostupneDnes(stav.data.karty, j.id, den, stav.aplikace.videno || {});
-    return el('button', { class: `jednotka${zamceno ? ' zamcena' : ''}`, type: 'button', disabled: zamceno, onclick: () => zahajitLekci(j) },
-      el('span', { class: 'nazev' }, zamceno ? '🔒 ' : splnene.has(j.id) ? '⭐ ' : '', j.nazev),
+    return el('button', { class: 'jednotka', type: 'button', onclick: () => zahajitLekci(j) },
+      el('span', { class: 'nazev' }, splnene.has(j.id) ? '⭐ ' : '', j.nazev),
       el('span', { class: 'pocet' }, `${karty.length} ${sklonuj(karty.length, 'karta', 'karty', 'karet')}`),
       el('div', { class: 'ukazatel', 'aria-hidden': 'true' },
         el('span', { class: 'umim', style: `width:${proc(c.umim)}` }),
@@ -88,17 +87,17 @@ function obrazovkaMapa() {
         el('span', { class: 'stitek nova' }, `nové ${c.nova}`),
         odlozenych ? el('span', { class: 'tlumeny' }, `odložené ${odlozenych}`) : null,
       ),
-      el('span', { class: 'na-rade' }, zamceno
-        ? `Odemkne se, až v jednotce „${sKartami[i - 1].nazev}“ dáš lekci na 80 %.`
-        : naRade ? `Dnes k procvičení: ${naRade} → Začít lekci` : 'Dnes nic na řadě'),
+      el('span', { class: 'na-rade' }, naRade ? `Dnes k procvičení: ${naRade} → Začít lekci` : 'Dnes nic na řadě'),
     );
   });
   return [
     zpravaBlok(),
     denniCilBlok(den),
     upozorneniNaZalohu(),
+    el('button', { class: 'tlacitko', type: 'button', onclick: () => zahajitLekci(null) }, '🔀 Smíchaná lekce ze všech jednotek'),
+    el('p', { class: 'tlumeny maly' }, 'Z každé jednotky něco, vše zamíchané (8 otázek).'),
     el('h2', {}, 'Jednotky'),
-    el('p', { class: 'tlumeny' }, 'Klepni na jednotku a začni lekci (5–8 otázek).'),
+    el('p', { class: 'tlumeny' }, 'Nebo si vyber jednotku a procvič jen ji (5–8 otázek).'),
     el('div', { class: 'jednotky' }, bloky),
   ];
 }
@@ -188,8 +187,8 @@ function zahajitLekci(jednotka) {
     obsah,
     data: stav.data,
     aplikace: stav.aplikace,
-    jednotka: jednotka.id,
-    nazevJednotky: jednotka.nazev,
+    jednotka: jednotka ? jednotka.id : null,
+    nazevJednotky: jednotka ? jednotka.nazev : 'Smíchaná lekce',
     ulozit: async () => {
       await db.ulozitKarty(stav.data);
       await db.ulozitAplikaci(stav.aplikace);

@@ -1,6 +1,6 @@
 // Service worker: aplikace funguje offline. Karty se sem NIKDY nedostanou –
 // jsou jen v IndexedDB v zařízení, soubor karty.json se nestahuje ze serveru.
-const VERZE = 'elingo-v5';
+const VERZE = 'elingo-v6';
 const SOUBORY = [
   './',
   './index.html',

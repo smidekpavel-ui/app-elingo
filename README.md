@@ -47,7 +47,7 @@ ne v Safari.
 
 - **Jednotky:** 36 hodnot pole `tema` se převádí na 9 jednotek (`js/jednotky.js`).
   Soubor se tím nemění.
-- **Lekce:** 5–8 otázek, většina nových. Další jednotka se odemkne lekcí s ≥ 80 % správně.
+- **Lekce:** hlavní tlačítko „Smíchaná lekce“ vezme 8 otázek napříč všemi jednotkami a zamíchá je; případně si vybereš jednu jednotku (5–8 otázek). Všechny jednotky jsou hned přístupné, ⭐ = lekce v jednotce na ≥ 80 % správně.
 - **Typy otázek:** výběr z možností (vždy zamíchané), psaná odpověď u karet, které
   už umíš z výběru (tolerantní k diakritice, mezerám, čárce/tečce), ústní otázky
   s odškrtáváním klíčových bodů, otevřené otázky se sebehodnocením.

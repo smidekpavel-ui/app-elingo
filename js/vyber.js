@@ -40,6 +40,8 @@ export function vybratLekci(karty, { jednotka, dnes, velikost = VELIKOST_LEKCE.v
       return (a.prihradka || 0) - (b.prihradka || 0);
     });
 
+  if (!jednotka) return mixZJednotek(nove, opakovani, n, rng);
+
   const chciNovych = Math.floor(n / 2) + 1; // většina
   const vybraneNove = nove.slice(0, chciNovych);
   const vybraneOpak = opakovani.slice(0, n - vybraneNove.length);
@@ -48,6 +50,39 @@ export function vybratLekci(karty, { jednotka, dnes, velikost = VELIKOST_LEKCE.v
   const doplnek = zbyva > 0 ? nove.slice(chciNovych, chciNovych + zbyva) : [];
 
   return zamichat([...vybraneNove, ...vybraneOpak, ...doplnek], rng);
+}
+
+/**
+ * Smíchaná lekce: z každé jednotky něco, jednotky v náhodném pořadí, po jedné kartě na kolo.
+ * Stejně jako u jednotky je většina nových: opakování nejvýš n − (n/2 + 1), pokud je nových dost.
+ */
+function mixZJednotek(nove, opakovani, n, rng) {
+  const fronty = new Map();
+  const fronta = (k) => {
+    const j = jednotkaKarty(k);
+    if (!fronty.has(j)) fronty.set(j, { nove: [], opak: [] });
+    return fronty.get(j);
+  };
+  nove.forEach((k) => fronta(k).nove.push(k));
+  opakovani.forEach((k) => fronta(k).opak.push(k));
+  const poradi = zamichat([...fronty.keys()], rng);
+  const maxOpak = n - (Math.floor(n / 2) + 1);
+  const vybrane = [];
+  let opak = 0;
+  const kolo = (smiNad) => {
+    let pridano = false;
+    for (const j of poradi) {
+      if (vybrane.length >= n) break;
+      const f = fronty.get(j);
+      let k = f.nove.shift();
+      if (!k && (opak < maxOpak || smiNad)) { k = f.opak.shift(); if (k) opak++; }
+      if (k) { vybrane.push(k); pridano = true; }
+    }
+    return pridano;
+  };
+  while (vybrane.length < n && kolo(false));
+  while (vybrane.length < n && kolo(true)); // nových je málo → doplnit opakováním
+  return zamichat(vybrane, rng);
 }
 
 /** Karty bez hodnocení (ústní bez klíčových bodů) se nezapisují do historie, aplikace si pamatuje jen datum. */
