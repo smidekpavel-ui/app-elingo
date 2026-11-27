@@ -74,7 +74,7 @@ function obrazovkaMapa() {
     const odlozenych = karty.filter((k) => jeOdlozena(k, den)).length;
     const proc = (n) => `${(n / karty.length) * 100}%`;
     const naRade = dostupneDnes(stav.data.karty, j.id, den, stav.aplikace.videno || {});
-    return el('button', { class: 'jednotka', type: 'button', onclick: () => zahajitLekci(j) },
+    return el('button', { class: 'jednotka', type: 'button', onclick: () => zahajitLekci(j, naRade ? undefined : 'volne') },
       el('span', { class: 'nazev' }, splnene.has(j.id) ? '⭐ ' : '', j.nazev),
       el('span', { class: 'pocet' }, `${karty.length} ${sklonuj(karty.length, 'karta', 'karty', 'karet')}`),
       el('div', { class: 'ukazatel', 'aria-hidden': 'true' },
@@ -87,7 +87,7 @@ function obrazovkaMapa() {
         el('span', { class: 'stitek nova' }, `nové ${c.nova}`),
         odlozenych ? el('span', { class: 'tlumeny' }, `odložené ${odlozenych}`) : null,
       ),
-      el('span', { class: 'na-rade' }, naRade ? `Dnes k procvičení: ${naRade} → Začít lekci` : 'Dnes nic na řadě'),
+      el('span', { class: 'na-rade' }, naRade ? `Dnes k procvičení: ${naRade} → Začít lekci` : 'Dnes nic na řadě → Procvičit volně'),
     );
   });
   return [
@@ -180,10 +180,11 @@ function prepnout(obrazovka) {
 }
 
 /* ---------- lekce ---------- */
-function zahajitLekci(jednotka) {
+function zahajitLekci(jednotka, rezim) {
   stav.zprava = null;
   document.body.classList.add('v-lekci');
   spustitLekci({
+    rezim,
     obsah,
     data: stav.data,
     aplikace: stav.aplikace,
@@ -193,22 +194,26 @@ function zahajitLekci(jednotka) {
       await db.ulozitKarty(stav.data);
       await db.ulozitAplikaci(stav.aplikace);
     },
-    konec: async (vysledek) => {
-      document.body.classList.remove('v-lekci');
-      if (vysledek) {
+    konec: async (vysledek, { zustat = false } = {}) => {
+      if (!zustat) document.body.classList.remove('v-lekci');
+      if (vysledek && !vysledek.zapocteno) {
+        vysledek.zapocteno = true; // „Procvičit znovu“ a pak „Pokračovat“ nesmí započítat lekci dvakrát
         const a = stav.aplikace;
         a.xp += vysledek.xp;
         a.lekce_dne = { ...a.lekce_dne, [vysledek.den]: (a.lekce_dne[vysledek.den] || 0) + 1 };
-        a.vysledky_lekci = [...(a.vysledky_lekci || []), {
-          den: vysledek.den, jednotka: vysledek.jednotka, spravnych: vysledek.spravnych,
-          castecnych: vysledek.castecnych, hodnocenych: vysledek.hodnocenych,
-        }].slice(-500);
+        if (!vysledek.volne) {
+          a.vysledky_lekci = [...(a.vysledky_lekci || []), {
+            den: vysledek.den, jednotka: vysledek.jednotka, spravnych: vysledek.spravnych,
+            castecnych: vysledek.castecnych, hodnocenych: vysledek.hodnocenych,
+          }].slice(-500);
+        }
         const z = zapocitatDen(stav.data.serie, vysledek.den, a.volno || []);
         stav.data.serie = z.serie;
         a.volno = z.volno;
         await db.ulozitKarty(stav.data);
         await db.ulozitAplikaci(a);
       }
+      if (zustat) return;
       stav.obrazovka = 'mapa';
       vykreslit();
       window.scrollTo(0, 0);

@@ -6,7 +6,7 @@ const spravne = [{ datum: '2026-11-01', vysledek: 'spravne', jistota: 3 }];
 
 test('způsob položení podle typu karty', () => {
   assert.equal(zpusobPolozeni({ typ: 'test', prihradka: 0, historie: [] }), 'vyber');
-  assert.equal(zpusobPolozeni({ typ: 'test', prihradka: 2, historie: spravne }), 'napis');
+  assert.equal(zpusobPolozeni({ typ: 'test', prihradka: 2, odpoved: '70 °C', historie: spravne }), 'napis');
   assert.equal(zpusobPolozeni({ typ: 'ustni', stav: 'v_opakovani', klicove_body: ['a'] }), 'body');
   assert.equal(zpusobPolozeni({ typ: 'ustni', stav: 'doplnit_klicove_body', klicove_body: [] }), 'zkus');
   for (const typ of ['fakt', 'priklad', 'pripad', 'vysvetli']) assert.equal(zpusobPolozeni({ typ }), 'otevrena');

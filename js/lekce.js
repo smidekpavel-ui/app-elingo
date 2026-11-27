@@ -1,7 +1,7 @@
 // Průběh lekce: pokládání otázek, vyhodnocení, jistota, zápis do karty.
 import { dnes } from './datum.js';
 import { zapsatOdpoved, odlozit, VYCHOZI_PAUZY } from './leitner.js';
-import { vybratLekci, zamichatMoznosti, umimZVyberu, bezHodnoceni } from './vyber.js';
+import { vybratLekci, vybratProcvicovani, zamichatMoznosti, umimZVyberu, bezHodnoceni } from './vyber.js';
 import { shoda } from './porovnani.js';
 import { el } from './ui.js';
 
@@ -54,7 +54,11 @@ export function spocitatXP(spravnych) {
  */
 export function spustitLekci(ctx) {
   const den = dnes();
-  const karty = vybratLekci(ctx.data.karty, { jednotka: ctx.jednotka || undefined, dnes: den, videno: ctx.aplikace.videno || {}, ...(ctx.jednotka ? {} : { velikost: 8 }) });
+  // Volné procvičování: i karty, které dnes nejsou na řadě. Nic se nezapisuje do historie ani přihrádek.
+  const volne = ctx.rezim === 'volne';
+  const karty = volne
+    ? vybratProcvicovani(ctx.data.karty, { jednotka: ctx.jednotka || undefined, dnes: den, velikost: 8 })
+    : vybratLekci(ctx.data.karty, { jednotka: ctx.jednotka || undefined, dnes: den, videno: ctx.aplikace.videno || {}, ...(ctx.jednotka ? {} : { velikost: 8 }) });
   const pauzy = ctx.data.nastaveni?.pauzy_dny || VYCHOZI_PAUZY;
   const lekce = { karty, index: 0, vysledky: [] };
 
@@ -62,9 +66,13 @@ export function spustitLekci(ctx) {
     ctx.obsah.replaceChildren(
       el('h2', {}, ctx.nazevJednotky),
       el('div', { class: 'karta' },
-        el('p', {}, 'Dnes tu nic na řadě není. Karty, které jsi viděl v posledních 7 dnech, a odložené karty se zatím neukazují.'),
+        el('p', {}, volne
+          ? 'V této jednotce teď nejsou žádné karty k procvičení (odložené karty se nevracejí).'
+          : 'Dnes tu nic na řadě není. Karty, které jsi viděl v posledních 7 dnech, a odložené karty se zatím neukazují.'),
+        volne ? null : el('p', {}, 'Můžeš ale procvičovat volně: karty se ukážou znovu, jen se odpovědi nezapíšou do opakování (přihrádky a termíny zůstanou, jak jsou).'),
       ),
-      el('button', { class: 'tlacitko', type: 'button', onclick: () => ctx.konec(null) }, 'Zpět na jednotky'),
+      volne ? null : el('button', { class: 'tlacitko', type: 'button', onclick: () => spustitLekci({ ...ctx, rezim: 'volne' }) }, '🔁 Procvičit volně'),
+      el('button', { class: volne ? 'tlacitko' : 'tlacitko druhe', type: 'button', onclick: () => ctx.konec(null) }, 'Zpět na jednotky'),
     );
     return;
   }
@@ -75,7 +83,7 @@ export function spustitLekci(ctx) {
       el('button', { class: 'zavrit', type: 'button', 'aria-label': 'Ukončit lekci', onclick: ukoncitPredcasne }, '✕'),
       el('div', { class: 'prubeh', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(karty.length), 'aria-valuenow': String(lekce.index) },
         el('span', { style: `width:${hotovo * 100}%` })),
-      el('span', { class: 'tlumeny' }, `${lekce.index + 1}/${karty.length}`),
+      el('span', { class: 'tlumeny' }, `${volne ? 'volně · ' : ''}${lekce.index + 1}/${karty.length}`),
     );
   }
 
@@ -249,15 +257,17 @@ export function spustitLekci(ctx) {
   }
 
   async function ulozitAPokracovat(karta, vysledek, jistota, o) {
-    const poznamka = o.body ? `klíčové body ${o.body} (Elingo)` : 'Elingo';
-    zapsatOdpoved(karta, { vysledek, jistota, poznamka }, den, pauzy);
-    await ctx.ulozit();
+    if (!volne) {
+      const poznamka = o.body ? `klíčové body ${o.body} (Elingo)` : 'Elingo';
+      zapsatOdpoved(karta, { vysledek, jistota, poznamka }, den, pauzy);
+      await ctx.ulozit();
+    }
     dalsi({ karta, vysledek });
   }
 
   function dalsi(zaznam) {
     lekce.vysledky.push(zaznam);
-    if (zaznam.vysledek === null) {
+    if (zaznam.vysledek === null && !volne) {
       ctx.aplikace.videno = { ...(ctx.aplikace.videno || {}), [zaznam.karta.id]: den };
       ctx.ulozit();
     }
@@ -273,7 +283,7 @@ export function spustitLekci(ctx) {
     const castecnych = hodnocene.filter((v) => v.vysledek === 'castecne').length;
     const podil = hodnocene.length ? spravnych / hodnocene.length : 0;
     const xp = spocitatXP(spravnych);
-    const vysledek = { spravnych, castecnych, hodnocenych: hodnocene.length, podil, xp, jednotka: ctx.jednotka, den };
+    const vysledek = { spravnych, castecnych, hodnocenych: hodnocene.length, podil, xp, jednotka: ctx.jednotka, den, volne };
 
     ctx.obsah.replaceChildren(
       el('div', { class: 'konec-lekce' },
@@ -284,8 +294,13 @@ export function spustitLekci(ctx) {
             ? `Správně ${spravnych} z ${hodnocene.length}` + (castecnych ? `, částečně ${castecnych}` : '') + '. Hranice je 80 %, stejně jako u zkoušky.'
             : 'V lekci byly jen karty bez hodnocení.'),
         el('p', { class: 'xp' }, `+${xp} XP`),
+        volne ? el('p', { class: 'tlumeny maly' }, 'Volné procvičování: odpovědi se nezapsaly do opakování.') : null,
       ),
       el('button', { class: 'tlacitko', type: 'button', onclick: () => ctx.konec(vysledek) }, 'Pokračovat'),
+      el('button', {
+        class: 'tlacitko druhe', type: 'button',
+        onclick: async () => { await ctx.konec(vysledek, { zustat: true }); spustitLekci({ ...ctx, rezim: 'volne' }); },
+      }, '🔁 Procvičit znovu (volně)'),
     );
   }
 

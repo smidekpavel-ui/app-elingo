@@ -1,5 +1,6 @@
 // Výběr karet do lekce: většina nových, zbytek opakování, pravidlo pestrosti.
-import { jeNova, smiDnes, posledniHodnoceni, MIN_ODSTUP_DNI } from './leitner.js';
+import { jeNova, smiDnes, posledniHodnoceni, naposledyVidena, jeOdlozena, stavUceni, MIN_ODSTUP_DNI } from './leitner.js';
+import { normalizovat } from './porovnani.js';
 import { pricistDny } from './datum.js';
 import { jednotkaKarty } from './jednotky.js';
 
@@ -100,10 +101,40 @@ export function dostupneDnes(karty, jednotka, dnes, videno = {}) {
   return karty.filter((k) => lzePolozit(k) && (!jednotka || jednotkaKarty(k) === jednotka) && smiDnes(k, dnes) && !nedavnoVidena(videno[k.id], dnes)).length;
 }
 
-/** Testová karta, kterou už umím z výběru → pokládat jako „napiš odpověď“. */
+/** Nejdelší správná odpověď (po normalizaci), kterou má smysl psát zpaměti. Delší věty zůstávají jako výběr. */
+export const MAX_DELKA_NAPIS = 20;
+
+/** Krátká odpověď (číslo, zkratka, pár slov) → dá se rozumně napsat a porovnat. */
+export function kratkaOdpoved(karta) {
+  const n = normalizovat(karta.odpoved || karta.moznosti?.[karta.spravna] || '');
+  return n.length > 0 && n.length <= MAX_DELKA_NAPIS;
+}
+
+/** Testová karta, kterou už umím z výběru → pokládat jako „napiš odpověď“ (jen u krátkých odpovědí). */
 export function umimZVyberu(karta) {
   const p = posledniHodnoceni(karta);
-  return karta.typ === 'test' && (karta.prihradka || 0) >= 2 && !!p && p.vysledek === 'spravne';
+  return karta.typ === 'test' && (karta.prihradka || 0) >= 2 && !!p && p.vysledek === 'spravne' && kratkaOdpoved(karta);
+}
+
+/**
+ * Volné procvičování jednotky (nebo všeho): bere i karty, které dnes nejsou na řadě.
+ * Odpovědi se nezapisují do historie ani nemění přihrádky, takže pestrost a opakování zůstávají beze změny.
+ * Odložené karty se ani tady nevrací. Přednost mají karty, které se učím, pak nové, pak ty, co umím;
+ * uvnitř skupiny nejdřív ty, které jsem nejdéle neviděl.
+ */
+export function vybratProcvicovani(karty, { jednotka, velikost = VELIKOST_LEKCE.max, rng = Math.random, dnes }) {
+  const poradiStavu = { ucim: 0, nova: 1, umim: 2 };
+  const kandidati = zamichat(
+    karty.filter((k) => lzePolozit(k) && (!jednotka || jednotkaKarty(k) === jednotka) && !(dnes && jeOdlozena(k, dnes))),
+    rng,
+  );
+  kandidati.sort((a, b) => {
+    const s = poradiStavu[stavUceni(a)] - poradiStavu[stavUceni(b)];
+    if (s) return s;
+    const va = naposledyVidena(a) || '', vb = naposledyVidena(b) || '';
+    return va < vb ? -1 : va > vb ? 1 : 0;
+  });
+  return zamichat(kandidati.slice(0, velikost), rng);
 }
 
 /** Zamíchá možnosti testové otázky (v sadě je správná vždy „a“). */
