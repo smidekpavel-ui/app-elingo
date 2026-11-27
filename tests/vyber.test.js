@@ -59,7 +59,7 @@ test('možnosti se míchají a správná zůstane označená', () => {
 });
 
 test('„umím z výběru“ → psaná odpověď', () => {
-  assert.ok(umimZVyberu({ typ: 'test', prihradka: 2, historie: [{ datum: '2026-11-01', vysledek: 'spravne', jistota: 3 }] }));
+  assert.ok(umimZVyberu({ typ: 'test', prihradka: 2, odpoved: '6 mm²', historie: [{ datum: '2026-11-01', vysledek: 'spravne', jistota: 3 }] }));
   assert.ok(!umimZVyberu({ typ: 'test', prihradka: 1, historie: [{ datum: '2026-11-01', vysledek: 'spravne', jistota: 3 }] }));
 });
 
@@ -72,4 +72,26 @@ test('smíchaná lekce bere z každé jednotky, nejvýš 8 karet', () => {
   const jednotky = new Set(lekce.map((k) => jednotkaKarty(k)));
   assert.equal(jednotky.size, 4);
   assert.equal(new Set(lekce.map((k) => k.id)).size, 8);
+});
+
+test('volné procvičování vrátí i karty, které dnes nejsou na řadě, ale ne odložené', async () => {
+  const { vybratProcvicovani } = await import('../js/vyber.js');
+  const videne = Array.from({ length: 6 }, (_, i) => ({
+    id: 'v' + i, tema: 'koupelny a zvláštní prostory', otazka: '?', prihradka: 1, pristi: '2026-11-12',
+    historie: [{ datum: '2026-11-05', vysledek: 'spravne', jistota: 3 }],
+  }));
+  const odl = { ...videne[0], id: 'odl', pristi: '2026-12-05', historie: [{ datum: '2026-11-05', vysledek: 'odlozeno', jistota: null }] };
+  const karty = [...videne, odl];
+  assert.equal(vybratLekci(karty, { jednotka: 'koupelny', dnes: '2026-11-06', rng: rng() }).length, 0, 'běžná lekce je prázdná');
+  const l = vybratProcvicovani(karty, { jednotka: 'koupelny', dnes: '2026-11-06', rng: rng() });
+  assert.equal(l.length, 6);
+  assert.ok(!l.some((k) => k.id === 'odl'));
+  assert.equal(videne[0].historie.length, 1, 'výběr nic nezapisuje');
+});
+
+test('psaní bez možností jen u krátkých odpovědí', () => {
+  const zaklad = { typ: 'test', prihradka: 2, spravna: 'a', historie: [{ datum: '2026-11-01', vysledek: 'spravne', jistota: 3 }] };
+  assert.equal(umimZVyberu({ ...zaklad, moznosti: { a: '70 °C' }, odpoved: '70 °C' }), true);
+  const dlouha = 'kombinace ochrany základní a opatření pro zajištění ochrany při poruše';
+  assert.equal(umimZVyberu({ ...zaklad, moznosti: { a: dlouha }, odpoved: dlouha }), false);
 });
